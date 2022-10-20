@@ -1,0 +1,26 @@
+name: 'Alfalfa'
+description: 'Run an instance of Alfalfa'
+inputs:
+  tag:
+    description: 'Docker image tag for pulling Alfalfa containers'
+    default: 'develop'
+  worker-scale:
+    description: 'Number of workers to run'
+    default: '1'
+  compose-file-ref:
+    description: 'Alfalfa repository ref where compose file can be found'
+    default: 'develop'
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout Alfalfa
+      uses: actions/checkout@v3
+      with:
+        repository: 'NREL/alfalfa'
+        ref: ${{ inputs.compose-file-ref }}
+        path: 'alfalfa/'
+    - run: |
+        export VERSION_TAG=${{ inputs.tag }}
+        docker compose -f alfalfa/docker-compose.yml up --no-build --quiet-pull -d --scale worker=${{ inputs.worker-scale }}
+        rm -rf alfalfa
+      shell: bash
